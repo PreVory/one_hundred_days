@@ -1,10 +1,5 @@
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'models/models.dart';
-import 'constants/consts.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 void main() {
   runApp(const OneHundredDaysApp());
@@ -17,7 +12,7 @@ class OneHundredDaysApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData.dark(),
-      home: Scaffold(
+      home: const Scaffold(
           body: Padding(
         padding: EdgeInsets.only(top: 32),
         child: MainPage(),
@@ -33,63 +28,103 @@ class MainPage extends StatefulWidget {
   State<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   List<int> containerList = List.generate(100, (index) => index + 1);
   List<int> pressedItems = [];
 
-  int selectedCard = -1;
+  late AnimationController controller;
+
+
+  @override
+  void initState() {
+    controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 7),
+    )..addListener(() {
+      setState(() {});
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+
+    controller.dispose();
+    super.dispose();
+  }
 
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: GridView.builder(
-          itemCount: containerList.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 5,
-            mainAxisSpacing: 5
-          ),
-          itemBuilder: (context, index) {
-            index = index++;
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  if (pressedItems.contains(index) && pressedItems.last == index) {
-                    pressedItems.remove(index);
-                  } else {
-                    pressedItems.add(index);
-                  }
-                });
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                    color: pressedItems.contains(index)
-                        ? Colors.green
-                        : Color.fromARGB(255, index * 1, index * 1, index),
-                    borderRadius: BorderRadius.circular(50)),
-                width: 50,
-                height: 50,
-                child: Center(
-                    child: Text(
-                        (index+1).toString(),
-                )),
-              ),
-            );
-          },
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.only(bottom: 50),
-        child: Align(alignment: Alignment.bottomCenter, child: ElevatedButton(onPressed: () {
-          setState(() {
-            pressedItems.clear();
-          });
 
-        }, child: Text('Clear')),),
-      )],
-    );
+    return
+      Stack(
+        children: [
+          Align(
+            alignment: Alignment.center,
+            child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: GridView.builder(
+              itemCount: containerList.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 5,
+                mainAxisSpacing: 5
+              ),
+              itemBuilder: (context, index) {
+                index = index++;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      if (pressedItems.contains(index) && pressedItems.last == index) {
+                        pressedItems.remove(index);
+                      } else {
+                        pressedItems.add(index);
+                      }
+                      controller.animateTo(pressedItems.isNotEmpty ? (pressedItems.last + 0.01) / 100 : 0);
+
+                    });
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: pressedItems.contains(index)
+                            ? Colors.green
+                            : Color.fromARGB(255, index * 1, index * 1, index),
+                        borderRadius: BorderRadius.circular(50)),
+                    width: 50,
+                    height: 50,
+                    child: Center(
+                        child: Text(
+                            (index+1).toString(),
+                    )),
+                  ),
+                );
+              },
+            ),
+        ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+              child: Container(
+                decoration: BoxDecoration(color: Colors.grey,),
+                height: 200,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    LinearProgressIndicator(value: controller.value, color: Colors.green, minHeight: 7),
+                    ElevatedButton(onPressed: () {
+                      setState(() {
+                        pressedItems.clear();
+                        controller.animateTo(pressedItems.isNotEmpty ? (pressedItems.last + 0.01) / 100 : 0);
+                      });
+
+                    }, child: const Text('Clear')),
+                  ],
+                ),
+              ),
+          ),
+        ],
+      );
   }
 }

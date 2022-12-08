@@ -34,11 +34,15 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   late AnimationController controller;
 
+  late ScrollController _scrollController;
+
   @override
   void initState() {
+    _scrollController = ScrollController();
+
     controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 7),
+      duration: const Duration(seconds: 2),
     )..addListener(() {
         setState(() {});
       });
@@ -61,6 +65,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: GridView.builder(
+              controller: _scrollController,
               itemCount: containerList.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4, crossAxisSpacing: 5, mainAxisSpacing: 5),
@@ -69,6 +74,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                 return GestureDetector(
                   onTap: () {
                     setState(() {
+
                       focusedIndex = index;
                       if (pressedItems.contains(index)) {
                         List<int> toRemove = [];
@@ -85,9 +91,13 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                           }
                         }
                       }
-                      controller.animateTo(pressedItems.isNotEmpty
+
+                       controller.animateTo(pressedItems.isNotEmpty
                           ? (pressedItems.last + 0.01) / 100
                           : 0);
+
+
+
                     });
                   },
                   child: Container(
@@ -114,23 +124,52 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               color: Colors.grey,
             ),
-            height: 200,
+            height: 120,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 LinearProgressIndicator(
-                    value: controller.value, color: Colors.green, minHeight: 7),
-                ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        focusedIndex = 0;
-                        pressedItems.clear();
-                        controller.animateTo(pressedItems.isNotEmpty
-                            ? (pressedItems.last + 0.01) / 100
-                            : 0);
-                      });
-                    },
-                    child: const Text('Clear')),
+                    value: controller.value,
+                    color:
+                        controller.value < 0.5 ? Colors.orange : Colors.green,
+                    minHeight: 7),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              focusedIndex = 0;
+                              pressedItems.clear();
+                              controller.animateTo(pressedItems.isNotEmpty
+                                  ? (pressedItems.last + 0.01) / 100
+                                  : 0);
+                            });
+                          },
+                          child: const Text('Clear')),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                          onPressed: () => _scrollController.animateTo(
+                              _scrollController.position.maxScrollExtent,
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.ease),
+                          child: Text('go end')),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                          onPressed: () => _scrollController.animateTo(
+                              _scrollController.position.minScrollExtent,
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.ease),
+                          child: Text('go start')),
+                    )
+                  ],
+                ),
                 Text('$focusedIndex из 100'),
               ],
             ),
